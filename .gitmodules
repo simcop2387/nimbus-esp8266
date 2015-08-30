@@ -1,0 +1,3 @@
+[submodule "luatool"]
+	path = luatool
+	url = ./luatool
