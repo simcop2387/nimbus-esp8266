@@ -23,6 +23,27 @@ local function parseArgs(args)
    return r
 end
 
+local function hex_to_char(x)
+  return string.char(tonumber(x, 16))
+end
+
+local function uri_decode(input)
+  return input:gsub("%%(%x%x)", hex_to_char)
+end
+
+local function parseFormData(body)
+  local data = {}
+  print("Parsing Form Data")
+  for kv in body.gmatch(body, "%s*([^=]+=[^&]+)") do
+    local key, value = string.match(kv, "(.*)=(.*)")
+    
+    print("Parsed: " .. key .. " => " .. value)
+    data[key] = value
+  end
+  
+  return data
+end
+
 local function getRequestData(payload)
   local requestData
   return function ()
@@ -36,7 +57,7 @@ local function getRequestData(payload)
       payload = nil
       collectgarbage()
       
-      print("mimeType = [" .. mimeType .. "]")
+      -- print("mimeType = [" .. mimeType .. "]")
       
       if mimeType == "application/json" then
         requestData = cjson.parse(body)
@@ -45,22 +66,9 @@ local function getRequestData(payload)
       else
         requestData = {}
       end
+      
+      return requestData
     end
-  end
-end
-
-local function hex_to_char(x)
-  return string.char(tonumber(x, 16))
-end
-
-local function uri_decode(input)
-  return input:gsub("%%(%x%x)", hex_to_char)
-end
-
-local function parseFormData(body)
-  print("Parsing Form Data")
-  for kv in body.gmatch(body, "([^=]+=[^&]+)") do
-    print("MATCHED: "..kv)
   end
 end
 
