@@ -34,7 +34,7 @@ end
 local function parseFormData(body)
   local data = {}
   print("Parsing Form Data")
-  for kv in body.gmatch(body, "%s*([^=]+=[^&]+)") do
+  for kv in body.gmatch(body, "%s*&?([^=]+=[^&]+)") do
     local key, value = string.match(kv, "(.*)=(.*)")
     
     print("Parsed: " .. key .. " => " .. value)
@@ -60,7 +60,8 @@ local function getRequestData(payload)
       -- print("mimeType = [" .. mimeType .. "]")
       
       if mimeType == "application/json" then
-        requestData = cjson.parse(body)
+        print("JSON: " .. body)
+        requestData = cjson.decode(body)
       elseif mimeType == "application/x-www-form-urlencoded" then
         requestData = parseFormData(body)
       else

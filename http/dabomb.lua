@@ -17,7 +17,7 @@ return function (connection, req, args)
       connection:send(form)
    elseif req.method == "POST" then
      local rd = req.getRequestData()
-     connection:send(tostring(rd))
+     connection:send(cjson.encode(rd))
       connection:send('<h2>Received the following values:</h2>')
       connection:send("<ul>\n")
       for name, value in pairs(rd) do
