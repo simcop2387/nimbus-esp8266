@@ -23,6 +23,47 @@ local function parseArgs(args)
    return r
 end
 
+local function getRequestData(payload)
+  local requestData
+  return function ()
+    print("Getting Request Data")
+    if requestData then
+      return requestData
+    else
+      local mimeType = string.match(payload, "Content%-Type: (%S+)\r\n")
+      local body_start = payload:find("\r\n\r\n", 1, true)
+      local body = payload:sub(body_start, #payload)
+      payload = nil
+      collectgarbage()
+      
+      print("mimeType = [" .. mimeType .. "]")
+      
+      if mimeType == "application/json" then
+        requestData = cjson.parse(body)
+      elseif mimeType == "application/x-www-form-urlencoded" then
+        requestData = parseFormData(body)
+      else
+        requestData = {}
+      end
+    end
+  end
+end
+
+local function hex_to_char(x)
+  return string.char(tonumber(x, 16))
+end
+
+local function uri_decode(input)
+  return input:gsub("%%(%x%x)", hex_to_char)
+end
+
+local function parseFormData(body)
+  print("Parsing Form Data")
+  for kv in body.gmatch(body, "([^=]+=[^&]+)") do
+    print("MATCHED: "..kv)
+  end
+end
+
 local function parseUri(uri)
    local r = {}
    local filename
@@ -60,5 +101,6 @@ return function (request)
    _, i, r.method, r.request = line:find("^([A-Z]+) (.-) HTTP/[1-9]+.[0-9]+$")
    r.methodIsValid = validateMethod(r.method)
    r.uri = parseUri(r.request)
+   r.getRequestData = getRequestData(request)
    return r
 end
